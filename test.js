@@ -1,1 +1,1 @@
-const html = <div>cobyte</div>
+var a = '123'

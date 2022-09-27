@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 const assert = require("assert"),
-    { breakableTypePattern } = require("../../shared/ast-utils"),
+    { breakableTypePattern } = require("../ast-utils"),
     CodePath = require("./code-path"),
     CodePathSegment = require("./code-path-segment"),
     IdGenerator = require("./id-generator"),

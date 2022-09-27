@@ -11,8 +11,8 @@
 const
     { isCommentToken } = require("eslint-utils"),
     TokenStore = require("./token-store"),
-    astUtils = require("../shared/ast-utils"),
-    Traverser = require("../shared/traverser");
+    astUtils = require("../ast-utils"),
+    Traverser = require("../traverser");
 
 //------------------------------------------------------------------------------
 // Private

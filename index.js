@@ -1,23 +1,51 @@
 const fs = require('fs')
+const { promisify } = require("util")
 const eslintScope = require("eslint-scope")
+const {
+    Legacy: {
+        ConfigOps,
+        ConfigValidator,
+        environments: BuiltInEnvironments
+    }
+} = require("@eslint/eslintrc/universal")
 const espree = require('espree')
 const path = require('path')
 const evk = require("eslint-visitor-keys")
+const merge = require("lodash.merge")
+const timing = require("./timing")
 const NodeEventGenerator = require("./node-event-generator")
 const CodePathAnalyzer = require("./code-path-analysis/code-path-analyzer")
 const createEmitter = require("./safe-emitter")
+const SourceCodeFixer = require("./source-code-fixer")
 
-const { SourceCode } = require("../source-code")
+const { SourceCode } = require("./source-code")
 const Rules = require("./rules")
 const createReportTranslator = require("./report-translator")
 
-const Traverser = require("./traverser");
-const filePath = path.resolve('./test.js')
+const Traverser = require("./traverser")
 
+const writeFile = promisify(fs.writeFile)
+
+const filePath = path.resolve('./test.js')
 const text = fs.readFileSync(filePath, "utf8")
 
 const parser = espree
-const config = providedConfig || {}
+const config = {}
+
+const configuredRules = {
+    quotes: [1, "single"]
+ }
+ const parserName = "espree"
+ const options = {
+     filename: filePath,
+     disableFixes: false
+ }
+ const slots = { 
+    cwd: process.cwd(),
+    parserMap: new Map([["espree", espree]]),
+    ruleMap: new Rules()
+}
+ const providedOptions = {}
 
 const envInFile = {}
 const resolvedEnvConfig = Object.assign({ builtin: true }, config.env, envInFile);
@@ -44,7 +72,7 @@ const ast = espree.parse(stripUnicodeBOM(text),{
     range: true,
     raw: true,
     sourceType: undefined,
-    tokons: true
+    tokens: true
 })
 
 const visitorKeys = evk.KEYS
@@ -70,24 +98,68 @@ const sourceCode = new SourceCode({
 //     },
 //     visitorKeys: sourceCode.visitorKeys
 // })
+
+const DEPRECATED_SOURCECODE_PASSTHROUGHS = {
+    getSource: "getText",
+    getSourceLines: "getLines",
+    getAllComments: "getAllComments",
+    getNodeByRangeIndex: "getNodeByRangeIndex",
+    getComments: "getComments",
+    getCommentsBefore: "getCommentsBefore",
+    getCommentsAfter: "getCommentsAfter",
+    getCommentsInside: "getCommentsInside",
+    getJSDocComment: "getJSDocComment",
+    getFirstToken: "getFirstToken",
+    getFirstTokens: "getFirstTokens",
+    getLastToken: "getLastToken",
+    getLastTokens: "getLastTokens",
+    getTokenAfter: "getTokenAfter",
+    getTokenBefore: "getTokenBefore",
+    getTokenByRangeStart: "getTokenByRangeStart",
+    getTokens: "getTokens",
+    getTokensAfter: "getTokensAfter",
+    getTokensBefore: "getTokensBefore",
+    getTokensBetween: "getTokensBetween"
+};
+
+const BASE_TRAVERSAL_CONTEXT = Object.freeze(
+    Object.keys(DEPRECATED_SOURCECODE_PASSTHROUGHS).reduce(
+        (contextInfo, methodName) =>
+            Object.assign(contextInfo, {
+                [methodName](...args) {
+                    return this.getSourceCode()[DEPRECATED_SOURCECODE_PASSTHROUGHS[methodName]](...args);
+                }
+            }),
+        {}
+    )
+);
+
+
 let lintingProblems = []
-try{
+// try{
     lintingProblems = runRules(
         sourceCode,
         configuredRules,
         ruleId => getRule(slots, ruleId),
         parserName,
         languageOptions,
-        settings,
+        settings = {},
         options.filename,
         options.disableFixes,
         slots.cwd,
         providedOptions.physicalFilename
     );
-} catch(err){
-    console.log(err)
-}
+// } catch(err){
+//     console.log(err)
+// }
 
+console.log(lintingProblems)
+const messages = lintingProblems
+const shouldFix = true
+const currentText = text
+fixedResult = SourceCodeFixer.applyFixes(currentText, messages, shouldFix);
+console.log(fixedResult)
+writeFile(filePath, fixedResult.output)
 
 function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageOptions, settings, filename, disableFixes, cwd, physicalFilename) {
     const emitter = createEmitter();
@@ -234,7 +306,6 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
     return lintingProblems;
 }
 
-console.log(text, ast)
 
 
 function stripUnicodeBOM(text) {
@@ -329,9 +400,16 @@ function isEspree(parser) {
 function getEnv(slots, envId) {
     return (
         (slots.lastConfigArray && slots.lastConfigArray.pluginEnvironments.get(envId)) ||
-        BuiltInEnvironments.get(envId) ||
+        // BuiltInEnvironments.get(envId) ||
         null
     );
+}
+
+function getRuleOptions(ruleConfig) {
+    if (Array.isArray(ruleConfig)) {
+        return ruleConfig.slice(1);
+    }
+    return [];
 }
 
 
