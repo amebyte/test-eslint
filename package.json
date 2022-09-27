@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "debug": "^4.3.4",
+    "eslint-scope": "^7.1.1",
     "eslint-visitor-keys": "^3.3.0",
     "espree": "^9.4.0"
   }

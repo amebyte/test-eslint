@@ -2,11 +2,13 @@ lockfileVersion: 5.4
 
 specifiers:
   debug: ^4.3.4
+  eslint-scope: ^7.1.1
   eslint-visitor-keys: ^3.3.0
   espree: ^9.4.0
 
 dependencies:
   debug: registry.npmmirror.com/debug/4.3.4
+  eslint-scope: registry.npmmirror.com/eslint-scope/7.1.1
   eslint-visitor-keys: registry.npmmirror.com/eslint-visitor-keys/3.3.0
   espree: registry.npmmirror.com/espree/9.4.0
 
@@ -45,6 +47,16 @@ packages:
       ms: registry.npmmirror.com/ms/2.1.2
     dev: false
 
+  registry.npmmirror.com/eslint-scope/7.1.1:
+    resolution: {integrity: sha512-QKQM/UXpIiHcLqJ5AOyIW7XZmzjkzQXYE54n1++wb0u9V/abW3l9uQnxX8Z5Xd18xyKIMTUAyQ0k1e8pz6LUrw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/eslint-scope/-/eslint-scope-7.1.1.tgz}
+    name: eslint-scope
+    version: 7.1.1
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dependencies:
+      esrecurse: registry.npmmirror.com/esrecurse/4.3.0
+      estraverse: registry.npmmirror.com/estraverse/5.3.0
+    dev: false
+
   registry.npmmirror.com/eslint-visitor-keys/3.3.0:
     resolution: {integrity: sha512-mQ+suqKJVyeuwGYHAdjMFqjCyfl8+Ldnxuyp3ldiMBFKkvytrXUZWaiPCEav8qDHKty44bD+qV1IP4T+w+xXRA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/eslint-visitor-keys/-/eslint-visitor-keys-3.3.0.tgz}
     name: eslint-visitor-keys
@@ -61,6 +73,22 @@ packages:
       acorn: registry.npmmirror.com/acorn/8.8.0
       acorn-jsx: registry.npmmirror.com/acorn-jsx/5.3.2_acorn@8.8.0
       eslint-visitor-keys: registry.npmmirror.com/eslint-visitor-keys/3.3.0
+    dev: false
+
+  registry.npmmirror.com/esrecurse/4.3.0:
+    resolution: {integrity: sha512-KmfKL3b6G+RXvP8N1vr3Tq1kL/oCFgn2NYXEtqP8/L3pKapUA4G8cFVaoF3SU323CD4XypR/ffioHmkti6/Tag==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/esrecurse/-/esrecurse-4.3.0.tgz}
+    name: esrecurse
+    version: 4.3.0
+    engines: {node: '>=4.0'}
+    dependencies:
+      estraverse: registry.npmmirror.com/estraverse/5.3.0
+    dev: false
+
+  registry.npmmirror.com/estraverse/5.3.0:
+    resolution: {integrity: sha512-MMdARuVEQziNTeJD8DgMqmhwR11BRQ/cBP+pLtYdSTnf3MIO8fFeiINEbX36ZdNlfU/7A9f3gUw49B3oQsvwBA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/estraverse/-/estraverse-5.3.0.tgz}
+    name: estraverse
+    version: 5.3.0
+    engines: {node: '>=4.0'}
     dev: false
 
   registry.npmmirror.com/ms/2.1.2:
