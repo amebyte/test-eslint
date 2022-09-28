@@ -1,30 +1,58 @@
 lockfileVersion: 5.4
 
-specifiers:
-  assert: ^2.0.0
-  debug: ^4.3.4
-  escape-string-regexp: ^5.0.0
-  eslint: ^8.24.0
-  eslint-scope: ^7.1.1
-  eslint-utils: ^3.0.0
-  eslint-visitor-keys: ^3.3.0
-  espree: ^9.4.0
-  esquery: ^1.4.0
-  esutils: ^2.0.3
-  lodash.merge: ^4.6.2
+importers:
 
-dependencies:
-  assert: registry.npmmirror.com/assert/2.0.0
-  debug: registry.npmmirror.com/debug/4.3.4
-  escape-string-regexp: registry.npmmirror.com/escape-string-regexp/5.0.0
-  eslint: registry.npmmirror.com/eslint/8.24.0
-  eslint-scope: registry.npmmirror.com/eslint-scope/7.1.1
-  eslint-utils: registry.npmmirror.com/eslint-utils/3.0.0_eslint@8.24.0
-  eslint-visitor-keys: registry.npmmirror.com/eslint-visitor-keys/3.3.0
-  espree: registry.npmmirror.com/espree/9.4.0
-  esquery: registry.npmmirror.com/esquery/1.4.0
-  esutils: registry.npmmirror.com/esutils/2.0.3
-  lodash.merge: registry.npmmirror.com/lodash.merge/4.6.2
+  .:
+    specifiers:
+      assert: ^2.0.0
+      debug: ^4.3.4
+      escape-string-regexp: ^5.0.0
+      eslint: ^8.24.0
+      eslint-scope: ^7.1.1
+      eslint-utils: ^3.0.0
+      eslint-visitor-keys: ^3.3.0
+      espree: ^9.4.0
+      esquery: ^1.4.0
+      esutils: ^2.0.3
+      lodash.merge: ^4.6.2
+    dependencies:
+      assert: registry.npmmirror.com/assert/2.0.0
+      debug: registry.npmmirror.com/debug/4.3.4
+      escape-string-regexp: registry.npmmirror.com/escape-string-regexp/5.0.0
+      eslint: registry.npmmirror.com/eslint/8.24.0
+      eslint-scope: registry.npmmirror.com/eslint-scope/7.1.1
+      eslint-utils: registry.npmmirror.com/eslint-utils/3.0.0_eslint@8.24.0
+      eslint-visitor-keys: registry.npmmirror.com/eslint-visitor-keys/3.3.0
+      espree: registry.npmmirror.com/espree/9.4.0
+      esquery: registry.npmmirror.com/esquery/1.4.0
+      esutils: registry.npmmirror.com/esutils/2.0.3
+      lodash.merge: registry.npmmirror.com/lodash.merge/4.6.2
+
+  packages/test1:
+    specifiers:
+      assert: ^2.0.0
+      debug: ^4.3.4
+      escape-string-regexp: ^5.0.0
+      eslint: ^8.24.0
+      eslint-scope: ^7.1.1
+      eslint-utils: ^3.0.0
+      eslint-visitor-keys: ^3.3.0
+      espree: ^9.4.0
+      esquery: ^1.4.0
+      esutils: ^2.0.3
+      lodash.merge: ^4.6.2
+    dependencies:
+      assert: registry.npmmirror.com/assert/2.0.0
+      debug: registry.npmmirror.com/debug/4.3.4
+      escape-string-regexp: registry.npmmirror.com/escape-string-regexp/5.0.0
+      eslint: registry.npmmirror.com/eslint/8.24.0
+      eslint-scope: registry.npmmirror.com/eslint-scope/7.1.1
+      eslint-utils: registry.npmmirror.com/eslint-utils/3.0.0_eslint@8.24.0
+      eslint-visitor-keys: registry.npmmirror.com/eslint-visitor-keys/3.3.0
+      espree: registry.npmmirror.com/espree/9.4.0
+      esquery: registry.npmmirror.com/esquery/1.4.0
+      esutils: registry.npmmirror.com/esutils/2.0.3
+      lodash.merge: registry.npmmirror.com/lodash.merge/4.6.2
 
 packages:
 
