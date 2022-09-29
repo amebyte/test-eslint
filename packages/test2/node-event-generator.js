@@ -279,11 +279,14 @@ class NodeEventGenerator {
 
             selectors.push(selector);
         });
-
+        console.log('this.anyTypeExitSelectors', this.anyTypeExitSelectors)
+        console.log('this.anyTypeEnterSelectors', this.anyTypeEnterSelectors)
         this.anyTypeEnterSelectors.sort(compareSpecificity);
         this.anyTypeExitSelectors.sort(compareSpecificity);
         this.enterSelectorsByNodeType.forEach(selectorList => selectorList.sort(compareSpecificity));
         this.exitSelectorsByNodeType.forEach(selectorList => selectorList.sort(compareSpecificity));
+        console.log('this.enterSelectorsByNodeType', this.enterSelectorsByNodeType)
+        console.log('this.exitSelectorsByNodeType', this.exitSelectorsByNodeType)
     }
 
     /**
