@@ -233,18 +233,6 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
                             });
                         }
                         const problem = reportTranslator(...args);
-
-                        if (problem.fix && !(rule.meta && rule.meta.fixable)) {
-                            throw new Error("Fixable rules must set the `meta.fixable` property to \"code\" or \"whitespace\".");
-                        }
-                        if (problem.suggestions && !(rule.meta && rule.meta.hasSuggestions === true)) {
-                            if (rule.meta && rule.meta.docs && typeof rule.meta.docs.suggestion !== "undefined") {
-
-                                // Encourage migration from the former property name.
-                                throw new Error("Rules with suggestions must set the `meta.hasSuggestions` property to `true`. `meta.docs.suggestion` is ignored by ESLint.");
-                            }
-                            throw new Error("Rules with suggestions must set the `meta.hasSuggestions` property to `true`.");
-                        }
                         lintingProblems.push(problem);
                     }
                 }
