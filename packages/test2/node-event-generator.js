@@ -66,10 +66,8 @@ class NodeEventGenerator {
      * @param {ESQueryOptions} esqueryOptions `esquery` options for traversing custom nodes.
      * @returns {NodeEventGenerator} new instance
      */
-    constructor(emitter, esqueryOptions) {
+    constructor(emitter) {
         this.emitter = emitter;
-        this.esqueryOptions = esqueryOptions;
-        this.currentAncestry = [];
         this.enterSelectorsByNodeType = new Map();
         this.exitSelectorsByNodeType = new Map();
 
@@ -97,9 +95,9 @@ class NodeEventGenerator {
      * @returns {void}
      */
     applySelector(node, selector) {
-        if (esquery.matches(node, selector.parsedSelector, this.currentAncestry, this.esqueryOptions)) {
+        // if (esquery.matches(node, selector.parsedSelector, this.currentAncestry, this.esqueryOptions)) {
             this.emitter.emit(selector.rawSelector, node);
-        }
+        // }
     }
 
     /**
@@ -128,9 +126,6 @@ class NodeEventGenerator {
      * @returns {void}
      */
     enterNode(node) {
-        if (node.parent) {
-            this.currentAncestry.unshift(node.parent);
-        }
         this.applySelectors(node, false);
     }
 
@@ -141,7 +136,6 @@ class NodeEventGenerator {
      */
     leaveNode(node) {
         this.applySelectors(node, true);
-        this.currentAncestry.shift();
     }
 }
 
