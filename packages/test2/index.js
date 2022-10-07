@@ -14,7 +14,6 @@ const evk = require("eslint-visitor-keys")
 const merge = require("lodash.merge")
 const timing = require("./timing")
 const NodeEventGenerator = require("./node-event-generator")
-const CodePathAnalyzer = require("./code-path-analysis/code-path-analyzer")
 const createEmitter = require("./safe-emitter")
 const SourceCodeFixer = require("./source-code-fixer")
 
@@ -87,19 +86,6 @@ const sourceCode = new SourceCode({
     scopeManager,
     visitorKeys:  evk.KEYS
 })
-
-// const nodeQueue = [];
-// console.log(text, ast)
-// Traverser.traverse(sourceCode.ast, {
-//     enter(node, parent) {
-//         node.parent = parent;
-//         nodeQueue.push({ isEntering: true, node });
-//     },
-//     leave(node) {
-//         nodeQueue.push({ isEntering: false, node });
-//     },
-//     visitorKeys: sourceCode.visitorKeys
-// })
 
 const DEPRECATED_SOURCECODE_PASSTHROUGHS = {
     getSource: "getText",
@@ -239,39 +225,18 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
             )
         );
 
-        // const ruleListeners = timing.enabled ? timing.time(ruleId, createRuleListeners)(rule, ruleContext) : createRuleListeners(rule, ruleContext);
         const ruleListeners = rule.create(ruleContext);
 
-        /**
-         * Include `ruleId` in error logs
-         * @param {Function} ruleListener A rule method that listens for a node.
-         * @returns {Function} ruleListener wrapped in error handler
-         */
-        function addRuleErrorHandler(ruleListener) {
-            return function ruleErrorHandler(...listenerArgs) {
-                try {
-                    return ruleListener(...listenerArgs);
-                } catch (e) {
-                    e.ruleId = ruleId;
-                    throw e;
-                }
-            };
-        }
-
-        // add all the selectors from the rule as listeners
         Object.keys(ruleListeners).forEach(selector => {
             const ruleListener = ruleListeners[selector];
             emitter.on(
                 selector,
-                addRuleErrorHandler(ruleListener)
+                ruleListener
             );
         });
     });
 
-    // only run code path analyzer if the top level node is "Program", skip otherwise
-    const eventGenerator = nodeQueue[0].node.type === "Program"
-        ? new CodePathAnalyzer(new NodeEventGenerator(emitter, { visitorKeys: sourceCode.visitorKeys, fallback: Traverser.getKeys }))
-        : new NodeEventGenerator(emitter, { visitorKeys: sourceCode.visitorKeys, fallback: Traverser.getKeys });
+    const eventGenerator = new NodeEventGenerator(emitter);
 
     nodeQueue.forEach(traversalInfo => {
         currentNode = traversalInfo.node;

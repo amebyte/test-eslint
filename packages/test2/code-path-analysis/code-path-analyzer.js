@@ -781,15 +781,15 @@ class CodePathAnalyzer {
         this.currentNode = node;
 
         // Updates the code path due to node's position in its parent node.
-        if (node.parent) {
-            preprocess(this, node);
-        }
+        // if (node.parent) {
+        //     preprocess(this, node);
+        // }
 
         /*
          * Updates the code path.
          * And emits onCodePathStart/onCodePathSegmentStart events.
          */
-        processCodePathToEnter(this, node);
+        // processCodePathToEnter(this, node);
 
         // Emits node events.
         this.original.enterNode(node);
@@ -810,13 +810,13 @@ class CodePathAnalyzer {
          * Updates the code path.
          * And emits onCodePathStart/onCodePathSegmentStart events.
          */
-        processCodePathToExit(this, node);
+        // processCodePathToExit(this, node);
 
         // Emits node events.
         this.original.leaveNode(node);
 
         // Emits the last onCodePathStart/onCodePathSegmentStart events.
-        postprocess(this, node);
+        // postprocess(this, node);
 
         this.currentNode = null;
     }
