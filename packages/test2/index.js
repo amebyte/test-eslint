@@ -227,7 +227,6 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
 
         const ruleListeners = rule.create(ruleContext);
 
-        // add all the selectors from the rule as listeners
         Object.keys(ruleListeners).forEach(selector => {
             const ruleListener = ruleListeners[selector];
             emitter.on(
