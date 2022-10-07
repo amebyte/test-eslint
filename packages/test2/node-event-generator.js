@@ -1,62 +1,4 @@
-/**
- * @fileoverview The event generator for AST nodes.
- * @author Toru Nagashima
- */
-
-"use strict";
-
-//------------------------------------------------------------------------------
-// Requirements
-//------------------------------------------------------------------------------
-
 const esquery = require("esquery");
-
-//------------------------------------------------------------------------------
-// Typedefs
-//------------------------------------------------------------------------------
-
-/**
- * An object describing an AST selector
- * @typedef {Object} ASTSelector
- * @property {string} rawSelector The string that was parsed into this selector
- * @property {boolean} isExit `true` if this should be emitted when exiting the node rather than when entering
- * @property {Object} parsedSelector An object (from esquery) describing the matching behavior of the selector
- * @property {string[]|null} listenerTypes A list of node types that could possibly cause the selector to match,
- * or `null` if all node types could cause a match
- * @property {number} attributeCount The total number of classes, pseudo-classes, and attribute queries in this selector
- * @property {number} identifierCount The total number of identifier queries in this selector
- */
-
-//------------------------------------------------------------------------------
-// Helpers
-//------------------------------------------------------------------------------
-
-/**
- * Computes the union of one or more arrays
- * @param {...any[]} arrays One or more arrays to union
- * @returns {any[]} The union of the input arrays
- */
-function union(...arrays) {
-    return [...new Set(arrays.flat())];
-}
-
-/**
- * Computes the intersection of one or more arrays
- * @param {...any[]} arrays One or more arrays to intersect
- * @returns {any[]} The intersection of the input arrays
- */
-function intersection(...arrays) {
-    if (arrays.length === 0) {
-        return [];
-    }
-
-    let result = [...new Set(arrays[0])];
-
-    for (const array of arrays.slice(1)) {
-        result = result.filter(x => array.includes(x));
-    }
-    return result;
-}
 
 /**
  * Gets the possible types of a selector
@@ -67,105 +9,11 @@ function getPossibleTypes(parsedSelector) {
     switch (parsedSelector.type) {
         case "identifier":
             return [parsedSelector.value];
-
-        case "matches": {
-            const typesForComponents = parsedSelector.selectors.map(getPossibleTypes);
-
-            if (typesForComponents.every(Boolean)) {
-                return union(...typesForComponents);
-            }
-            return null;
-        }
-
-        case "compound": {
-            const typesForComponents = parsedSelector.selectors.map(getPossibleTypes).filter(typesForComponent => typesForComponent);
-
-            // If all of the components could match any type, then the compound could also match any type.
-            if (!typesForComponents.length) {
-                return null;
-            }
-
-            /*
-             * If at least one of the components could only match a particular type, the compound could only match
-             * the intersection of those types.
-             */
-            return intersection(...typesForComponents);
-        }
-
-        case "child":
-        case "descendant":
-        case "sibling":
-        case "adjacent":
-            return getPossibleTypes(parsedSelector.right);
-
-        case "class":
-            if (parsedSelector.name === "function") {
-                return ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"];
-            }
-
-            return null;
-
         default:
             return null;
 
     }
 }
-
-/**
- * Counts the number of class, pseudo-class, and attribute queries in this selector
- * @param {Object} parsedSelector An object (from esquery) describing the selector's matching behavior
- * @returns {number} The number of class, pseudo-class, and attribute queries in this selector
- */
-function countClassAttributes(parsedSelector) {
-    switch (parsedSelector.type) {
-        case "child":
-        case "descendant":
-        case "sibling":
-        case "adjacent":
-            return countClassAttributes(parsedSelector.left) + countClassAttributes(parsedSelector.right);
-
-        case "compound":
-        case "not":
-        case "matches":
-            return parsedSelector.selectors.reduce((sum, childSelector) => sum + countClassAttributes(childSelector), 0);
-
-        case "attribute":
-        case "field":
-        case "nth-child":
-        case "nth-last-child":
-            return 1;
-
-        default:
-            return 0;
-    }
-}
-
-/**
- * Counts the number of identifier queries in this selector
- * @param {Object} parsedSelector An object (from esquery) describing the selector's matching behavior
- * @returns {number} The number of identifier queries
- */
-function countIdentifiers(parsedSelector) {
-    switch (parsedSelector.type) {
-        case "child":
-        case "descendant":
-        case "sibling":
-        case "adjacent":
-            return countIdentifiers(parsedSelector.left) + countIdentifiers(parsedSelector.right);
-
-        case "compound":
-        case "not":
-        case "matches":
-            return parsedSelector.selectors.reduce((sum, childSelector) => sum + countIdentifiers(childSelector), 0);
-
-        case "identifier":
-            return 1;
-
-        default:
-            return 0;
-    }
-}
-
 
 const selectorCache = new Map();
 
@@ -186,8 +34,6 @@ function parseSelector(rawSelector) {
         isExit: rawSelector.endsWith(":exit"),
         parsedSelector,
         listenerTypes: getPossibleTypes(parsedSelector),
-        attributeCount: countClassAttributes(parsedSelector),
-        identifierCount: countIdentifiers(parsedSelector)
     };
 
     selectorCache.set(rawSelector, result);
@@ -226,8 +72,6 @@ class NodeEventGenerator {
         this.currentAncestry = [];
         this.enterSelectorsByNodeType = new Map();
         this.exitSelectorsByNodeType = new Map();
-        // this.anyTypeEnterSelectors = [];
-        // this.anyTypeExitSelectors = [];
 
         emitter.eventNames().forEach(rawSelector => {
             const selector = parseSelector(rawSelector);
@@ -243,19 +87,7 @@ class NodeEventGenerator {
                 });
                 return;
             }
-            // const selectors = selector.isExit ? this.anyTypeExitSelectors : this.anyTypeEnterSelectors;
-
-            // selectors.push(selector);
-            // console.log('selectors', selectors)
         });
-        console.log('this.anyTypeExitSelectors', this.anyTypeExitSelectors)
-        console.log('this.anyTypeEnterSelectors', this.anyTypeEnterSelectors)
-        // this.anyTypeEnterSelectors.sort(compareSpecificity);
-        // this.anyTypeExitSelectors.sort(compareSpecificity);
-        // this.enterSelectorsByNodeType.forEach(selectorList => selectorList.sort(compareSpecificity));
-        // this.exitSelectorsByNodeType.forEach(selectorList => selectorList.sort(compareSpecificity));
-        console.log('this.enterSelectorsByNodeType', this.enterSelectorsByNodeType)
-        console.log('this.exitSelectorsByNodeType', this.exitSelectorsByNodeType)
     }
 
     /**
@@ -278,25 +110,15 @@ class NodeEventGenerator {
      */
     applySelectors(node, isExit) {
         const selectorsByNodeType = (isExit ? this.exitSelectorsByNodeType : this.enterSelectorsByNodeType).get(node.type) || [];
-        // const anyTypeSelectors = isExit ? this.anyTypeExitSelectors : this.anyTypeEnterSelectors;
 
         /*
          * selectorsByNodeType and anyTypeSelectors were already sorted by specificity in the constructor.
          * Iterate through each of them, applying selectors in the right order.
          */
         let selectorsByTypeIndex = 0;
-        // let anyTypeSelectorsIndex = 0;
 
         while (selectorsByTypeIndex < selectorsByNodeType.length ) {
-            // if (
-            //     selectorsByTypeIndex >= selectorsByNodeType.length ||
-            //     anyTypeSelectorsIndex < anyTypeSelectors.length &&
-            //     compareSpecificity(anyTypeSelectors[anyTypeSelectorsIndex], selectorsByNodeType[selectorsByTypeIndex]) < 0
-            // ) {
-            //     this.applySelector(node, anyTypeSelectors[anyTypeSelectorsIndex++]);
-            // } else {
                 this.applySelector(node, selectorsByNodeType[selectorsByTypeIndex++]);
-            // }
         }
     }
 
