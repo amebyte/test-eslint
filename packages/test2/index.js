@@ -269,9 +269,7 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
     });
 
     // only run code path analyzer if the top level node is "Program", skip otherwise
-    const eventGenerator = nodeQueue[0].node.type === "Program"
-        ? new CodePathAnalyzer(new NodeEventGenerator(emitter, { visitorKeys: sourceCode.visitorKeys, fallback: Traverser.getKeys }))
-        : new NodeEventGenerator(emitter, { visitorKeys: sourceCode.visitorKeys, fallback: Traverser.getKeys });
+    const eventGenerator = new NodeEventGenerator(emitter, { visitorKeys: sourceCode.visitorKeys, fallback: Traverser.getKeys });
 
     nodeQueue.forEach(traversalInfo => {
         currentNode = traversalInfo.node;
