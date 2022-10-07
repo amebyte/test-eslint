@@ -1,18 +1,8 @@
 const fs = require('fs')
 const { promisify } = require("util")
-const eslintScope = require("eslint-scope")
-const {
-    Legacy: {
-        ConfigOps,
-        ConfigValidator,
-        environments: BuiltInEnvironments
-    }
-} = require("@eslint/eslintrc/universal")
 const espree = require('espree')
 const path = require('path')
 const evk = require("eslint-visitor-keys")
-const merge = require("lodash.merge")
-const timing = require("./timing")
 const NodeEventGenerator = require("./node-event-generator")
 const createEmitter = require("./safe-emitter")
 const SourceCodeFixer = require("./source-code-fixer")
@@ -28,39 +18,16 @@ const writeFile = promisify(fs.writeFile)
 const filePath = path.resolve('./test.js')
 const text = fs.readFileSync(filePath, "utf8")
 
-const parser = espree
-const config = {}
-
 const configuredRules = {
     // quotes: [1, "single"],
     "no-var": [1]
     // "no-unused-vars": [1]
  }
- const parserName = "espree"
- const options = {
-     filename: filePath,
-     disableFixes: false
- }
+
  const slots = { 
-    cwd: process.cwd(),
-    parserMap: new Map([["espree", espree]]),
     ruleMap: new Rules()
 }
- const providedOptions = {}
 
-const envInFile = {}
-const resolvedEnvConfig = Object.assign({ builtin: true }, config.env, envInFile);
-const enabledEnvs = Object.keys(resolvedEnvConfig)
-    .filter(envName => resolvedEnvConfig[envName])
-    .map(envName => getEnv(slots, envName))
-    .filter(env => env);
-
-const parserOptions = resolveParserOptions(parser, config.parserOptions || {}, enabledEnvs);
-const languageOptions = createLanguageOptions({
-    globals: config.globals,
-    parser,
-    parserOptions
-});
 // 编译成AST
 const ast = espree.parse(stripUnicodeBOM(text),{ 
     comment: true,
@@ -76,15 +43,12 @@ const ast = espree.parse(stripUnicodeBOM(text),{
     tokens: true
 })
 
-const visitorKeys = evk.KEYS
-const scopeManager = analyzeScope(ast, languageOptions, visitorKeys)
-
 const sourceCode = new SourceCode({
     text,
     ast,
     parserServices: {},
-    scopeManager,
-    visitorKeys:  evk.KEYS
+    scopeManager:null,
+    visitorKeys: evk.KEYS
 })
 
 const DEPRECATED_SOURCECODE_PASSTHROUGHS = {
@@ -125,22 +89,11 @@ const BASE_TRAVERSAL_CONTEXT = Object.freeze(
 
 
 let lintingProblems = []
-// try{
-    lintingProblems = runRules(
-        sourceCode,
-        configuredRules,
-        ruleId => getRule(slots, ruleId),
-        parserName,
-        languageOptions,
-        settings = {},
-        options.filename,
-        options.disableFixes,
-        slots.cwd,
-        providedOptions.physicalFilename
-    );
-// } catch(err){
-//     console.log(err)
-// }
+lintingProblems = runRules(
+    sourceCode,
+    configuredRules,
+    ruleId => getRule(slots, ruleId),
+);
 
 console.log(lintingProblems)
 const messages = lintingProblems
@@ -150,7 +103,7 @@ fixedResult = SourceCodeFixer.applyFixes(currentText, messages, shouldFix);
 console.log(fixedResult)
 writeFile(filePath, fixedResult.output)
 
-function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageOptions, settings, filename, disableFixes, cwd, physicalFilename) {
+function runRules(sourceCode, configuredRules, ruleMapper) {
     const emitter = createEmitter();
     const nodeQueue = [];
     let currentNode = sourceCode.ast;
@@ -170,19 +123,7 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
         Object.assign(
             Object.create(BASE_TRAVERSAL_CONTEXT),
             {
-                getDeclaredVariables: sourceCode.scopeManager.getDeclaredVariables.bind(sourceCode.scopeManager),
-                getCwd: () => cwd,
-                getFilename: () => filename,
-                getPhysicalFilename: () => physicalFilename || filename,
-
                 getSourceCode: () => sourceCode,
-                parserOptions: {
-                    ...languageOptions.parserOptions
-                },
-                parserPath: parserName,
-                languageOptions,
-                parserServices: sourceCode.parserServices,
-                settings
             }
         )
     );
@@ -190,12 +131,6 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
     const lintingProblems = [];
 
     Object.keys(configuredRules).forEach(ruleId => {
-        const severity = ConfigOps.getRuleSeverity(configuredRules[ruleId]);
-
-        // not load disabled rules
-        if (severity === 0) {
-            return;
-        }
 
         const rule = ruleMapper(ruleId);
 
@@ -212,10 +147,8 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
                         if (reportTranslator === null) {
                             reportTranslator = createReportTranslator({
                                 ruleId,
-                                severity,
                                 sourceCode,
                                 messageIds,
-                                disableFixes
                             });
                         }
                         const problem = reportTranslator(...args);
@@ -256,103 +189,11 @@ function runRules(sourceCode, configuredRules, ruleMapper, parserName, languageO
     return lintingProblems;
 }
 
-
-
 function stripUnicodeBOM(text) {
     if (text.charCodeAt(0) === 0xFEFF) {
         return text.slice(1);
     }
     return text;
-}
-
-function analyzeScope(ast, languageOptions, visitorKeys) {
-    const parserOptions = languageOptions.parserOptions;
-    const ecmaFeatures = parserOptions.ecmaFeatures || {};
-    const ecmaVersion = languageOptions.ecmaVersion || DEFAULT_ECMA_VERSION;
-
-    return eslintScope.analyze(ast, {
-        ignoreEval: true,
-        nodejsScope: ecmaFeatures.globalReturn,
-        impliedStrict: ecmaFeatures.impliedStrict,
-        ecmaVersion: typeof ecmaVersion === "number" ? ecmaVersion : 6,
-        sourceType: languageOptions.sourceType || "script",
-        childVisitorKeys: visitorKeys || evk.KEYS,
-        fallback: Traverser.getKeys
-    });
-}
-
-
-function createLanguageOptions({ globals: configuredGlobals, parser, parserOptions }) {
-
-    const {
-        ecmaVersion,
-        sourceType
-    } = parserOptions;
-
-    return {
-        globals: configuredGlobals,
-        ecmaVersion: normalizeEcmaVersionForLanguageOptions(ecmaVersion),
-        sourceType,
-        parser,
-        parserOptions
-    };
-}
-
-function normalizeEcmaVersionForLanguageOptions(ecmaVersion) {
-
-    switch (ecmaVersion) {
-        case 3:
-            return 3;
-        case 5:
-        case void 0:
-            return 5;
-
-        default:
-            if (typeof ecmaVersion === "number") {
-                return ecmaVersion >= 2015 ? ecmaVersion : ecmaVersion + 2009;
-            }
-    }
-
-    return espree.latestEcmaVersion + 2009;
-}
-
-function resolveParserOptions(parser, providedOptions, enabledEnvironments) {
-
-    const parserOptionsFromEnv = enabledEnvironments
-        .filter(env => env.parserOptions)
-        .reduce((parserOptions, env) => merge(parserOptions, env.parserOptions), {});
-    const mergedParserOptions = merge(parserOptionsFromEnv, providedOptions || {});
-    const isModule = mergedParserOptions.sourceType === "module";
-
-    if (isModule) {
-        mergedParserOptions.ecmaFeatures = Object.assign({}, mergedParserOptions.ecmaFeatures, { globalReturn: false });
-    }
-
-    mergedParserOptions.ecmaVersion = normalizeEcmaVersion(parser, mergedParserOptions.ecmaVersion);
-
-    return mergedParserOptions;
-}
-
-function normalizeEcmaVersion(parser, ecmaVersion) {
-
-    if (isEspree(parser)) {
-        if (ecmaVersion === "latest") {
-            return espree.latestEcmaVersion;
-        }
-    }
-    return ecmaVersion >= 2015 ? ecmaVersion - 2009 : ecmaVersion;
-}
-
-function isEspree(parser) {
-    return !!(parser === espree || parser[parserSymbol] === espree);
-}
-
-function getEnv(slots, envId) {
-    return (
-        (slots.lastConfigArray && slots.lastConfigArray.pluginEnvironments.get(envId)) ||
-        // BuiltInEnvironments.get(envId) ||
-        null
-    );
 }
 
 function getRuleOptions(ruleConfig) {
@@ -362,19 +203,6 @@ function getRuleOptions(ruleConfig) {
     return [];
 }
 
-
-function createRuleListeners(rule, ruleContext) {
-    try {
-        return rule.create(ruleContext);
-    } catch (ex) {
-        ex.message = `Error while loading rule '${ruleContext.id}': ${ex.message}`;
-        throw ex;
-    }
-}
-
 function getRule(slots, ruleId) {
-    return (
-        (slots.lastConfigArray && slots.lastConfigArray.pluginRules.get(ruleId)) ||
-        slots.ruleMap.get(ruleId)
-    );
+    return slots.ruleMap.get(ruleId);
 }

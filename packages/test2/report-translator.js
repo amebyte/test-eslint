@@ -13,7 +13,6 @@ function normalizeReportLoc(descriptor) {
 function createProblem(options) {
     const problem = {
         ruleId: options.ruleId,
-        severity: options.severity,
         message: options.message,
         line: options.loc.start.line,
         column: options.loc.start.column + 1,
@@ -42,12 +41,11 @@ module.exports = function createReportTranslator(metadata) {
 
         return createProblem({
             ruleId: metadata.ruleId,
-            severity: metadata.severity,
             node: descriptor.node,
             message: descriptor.message,
             messageId: descriptor.messageId,
             loc: normalizeReportLoc(descriptor),
-            fix: metadata.disableFixes ? null : descriptor.fix(ruleFixer),
+            fix: descriptor.fix(ruleFixer),
         });
     };
 };
