@@ -166,38 +166,6 @@ function countIdentifiers(parsedSelector) {
     }
 }
 
-/**
- * Compares the specificity of two selector objects, with CSS-like rules.
- * @param {ASTSelector} selectorA An AST selector descriptor
- * @param {ASTSelector} selectorB Another AST selector descriptor
- * @returns {number}
- * a value less than 0 if selectorA is less specific than selectorB
- * a value greater than 0 if selectorA is more specific than selectorB
- * a value less than 0 if selectorA and selectorB have the same specificity, and selectorA <= selectorB alphabetically
- * a value greater than 0 if selectorA and selectorB have the same specificity, and selectorA > selectorB alphabetically
- */
-function compareSpecificity(selectorA, selectorB) {
-    return selectorA.attributeCount - selectorB.attributeCount ||
-        selectorA.identifierCount - selectorB.identifierCount ||
-        (selectorA.rawSelector <= selectorB.rawSelector ? -1 : 1);
-}
-
-/**
- * Parses a raw selector string, and throws a useful error if parsing fails.
- * @param {string} rawSelector A raw AST selector
- * @returns {Object} An object (from esquery) describing the matching behavior of this selector
- * @throws {Error} An error if the selector is invalid
- */
-function tryParseSelector(rawSelector) {
-    try {
-        return esquery.parse(rawSelector.replace(/:exit$/u, ""));
-    } catch (err) {
-        if (err.location && err.location.start && typeof err.location.start.offset === "number") {
-            throw new SyntaxError(`Syntax error in selector "${rawSelector}" at position ${err.location.start.offset}: ${err.message}`);
-        }
-        throw err;
-    }
-}
 
 const selectorCache = new Map();
 
@@ -211,7 +179,7 @@ function parseSelector(rawSelector) {
         return selectorCache.get(rawSelector);
     }
 
-    const parsedSelector = tryParseSelector(rawSelector);
+    const parsedSelector = esquery.parse(rawSelector.replace(/:exit$/u, ""));
 
     const result = {
         rawSelector,
@@ -258,8 +226,8 @@ class NodeEventGenerator {
         this.currentAncestry = [];
         this.enterSelectorsByNodeType = new Map();
         this.exitSelectorsByNodeType = new Map();
-        this.anyTypeEnterSelectors = [];
-        this.anyTypeExitSelectors = [];
+        // this.anyTypeEnterSelectors = [];
+        // this.anyTypeExitSelectors = [];
 
         emitter.eventNames().forEach(rawSelector => {
             const selector = parseSelector(rawSelector);
@@ -275,16 +243,17 @@ class NodeEventGenerator {
                 });
                 return;
             }
-            const selectors = selector.isExit ? this.anyTypeExitSelectors : this.anyTypeEnterSelectors;
+            // const selectors = selector.isExit ? this.anyTypeExitSelectors : this.anyTypeEnterSelectors;
 
-            selectors.push(selector);
+            // selectors.push(selector);
+            // console.log('selectors', selectors)
         });
         console.log('this.anyTypeExitSelectors', this.anyTypeExitSelectors)
         console.log('this.anyTypeEnterSelectors', this.anyTypeEnterSelectors)
-        this.anyTypeEnterSelectors.sort(compareSpecificity);
-        this.anyTypeExitSelectors.sort(compareSpecificity);
-        this.enterSelectorsByNodeType.forEach(selectorList => selectorList.sort(compareSpecificity));
-        this.exitSelectorsByNodeType.forEach(selectorList => selectorList.sort(compareSpecificity));
+        // this.anyTypeEnterSelectors.sort(compareSpecificity);
+        // this.anyTypeExitSelectors.sort(compareSpecificity);
+        // this.enterSelectorsByNodeType.forEach(selectorList => selectorList.sort(compareSpecificity));
+        // this.exitSelectorsByNodeType.forEach(selectorList => selectorList.sort(compareSpecificity));
         console.log('this.enterSelectorsByNodeType', this.enterSelectorsByNodeType)
         console.log('this.exitSelectorsByNodeType', this.exitSelectorsByNodeType)
     }
@@ -309,25 +278,25 @@ class NodeEventGenerator {
      */
     applySelectors(node, isExit) {
         const selectorsByNodeType = (isExit ? this.exitSelectorsByNodeType : this.enterSelectorsByNodeType).get(node.type) || [];
-        const anyTypeSelectors = isExit ? this.anyTypeExitSelectors : this.anyTypeEnterSelectors;
+        // const anyTypeSelectors = isExit ? this.anyTypeExitSelectors : this.anyTypeEnterSelectors;
 
         /*
          * selectorsByNodeType and anyTypeSelectors were already sorted by specificity in the constructor.
          * Iterate through each of them, applying selectors in the right order.
          */
         let selectorsByTypeIndex = 0;
-        let anyTypeSelectorsIndex = 0;
+        // let anyTypeSelectorsIndex = 0;
 
-        while (selectorsByTypeIndex < selectorsByNodeType.length || anyTypeSelectorsIndex < anyTypeSelectors.length) {
-            if (
-                selectorsByTypeIndex >= selectorsByNodeType.length ||
-                anyTypeSelectorsIndex < anyTypeSelectors.length &&
-                compareSpecificity(anyTypeSelectors[anyTypeSelectorsIndex], selectorsByNodeType[selectorsByTypeIndex]) < 0
-            ) {
-                this.applySelector(node, anyTypeSelectors[anyTypeSelectorsIndex++]);
-            } else {
+        while (selectorsByTypeIndex < selectorsByNodeType.length ) {
+            // if (
+            //     selectorsByTypeIndex >= selectorsByNodeType.length ||
+            //     anyTypeSelectorsIndex < anyTypeSelectors.length &&
+            //     compareSpecificity(anyTypeSelectors[anyTypeSelectorsIndex], selectorsByNodeType[selectorsByTypeIndex]) < 0
+            // ) {
+            //     this.applySelector(node, anyTypeSelectors[anyTypeSelectorsIndex++]);
+            // } else {
                 this.applySelector(node, selectorsByNodeType[selectorsByTypeIndex++]);
-            }
+            // }
         }
     }
 
