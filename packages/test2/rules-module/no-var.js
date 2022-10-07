@@ -27,7 +27,7 @@
    create(context) {
      const sourceCode = context.getSourceCode()
      return {
-        VariableDeclaration(node) {
+        'VariableDeclaration:exit'(node) {
             if(node.kind === 'var') {
               context.report({
                  node,

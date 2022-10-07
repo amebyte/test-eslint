@@ -14,7 +14,6 @@ const evk = require("eslint-visitor-keys")
 const merge = require("lodash.merge")
 const timing = require("./timing")
 const NodeEventGenerator = require("./node-event-generator")
-const CodePathAnalyzer = require("./code-path-analysis/code-path-analyzer")
 const createEmitter = require("./safe-emitter")
 const SourceCodeFixer = require("./source-code-fixer")
 
