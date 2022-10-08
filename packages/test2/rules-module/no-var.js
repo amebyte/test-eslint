@@ -1,14 +1,3 @@
-/**
- * @fileoverview 自定义插件
- * @author colint
- */
- "use strict";
-
- //------------------------------------------------------------------------------
- // Rule Definition
- //------------------------------------------------------------------------------
- 
- /** @type {import('eslint').Rule.RuleModule} */
  module.exports = {
    meta: {
      type: "problem", // `problem`, `suggestion`, or `layout`

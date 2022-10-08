@@ -1,9 +1,7 @@
 const esquery = require("esquery");
 
 /**
- * Gets the possible types of a selector
- * @param {Object} parsedSelector An object (from esquery) describing the matching behavior of the selector
- * @returns {string[]|null} The node types that could possibly trigger this selector, or `null` if all node types could trigger it
+ * 获取选择器的可能类型
  */
 function getPossibleTypes(parsedSelector) {
     switch (parsedSelector.type) {
@@ -18,9 +16,7 @@ function getPossibleTypes(parsedSelector) {
 const selectorCache = new Map();
 
 /**
- * Parses a raw selector string, and returns the parsed selector along with specificity and type information.
- * @param {string} rawSelector A raw AST selector
- * @returns {ASTSelector} A selector descriptor
+ * 分析原始选择器字符串，并返回已分析的选择器以及特定性和类型信息
  */
 function parseSelector(rawSelector) {
     if (selectorCache.has(rawSelector)) {
@@ -40,32 +36,7 @@ function parseSelector(rawSelector) {
     return result;
 }
 
-//------------------------------------------------------------------------------
-// Public Interface
-//------------------------------------------------------------------------------
-
-/**
- * The event generator for AST nodes.
- * This implements below interface.
- *
- * ```ts
- * interface EventGenerator {
- *     emitter: SafeEmitter;
- *     enterNode(node: ASTNode): void;
- *     leaveNode(node: ASTNode): void;
- * }
- * ```
- */
 class NodeEventGenerator {
-
-    /**
-     * @param {SafeEmitter} emitter
-     * An SafeEmitter which is the destination of events. This emitter must already
-     * have registered listeners for all of the events that it needs to listen for.
-     * (See lib/linter/safe-emitter.js for more details on `SafeEmitter`.)
-     * @param {ESQueryOptions} esqueryOptions `esquery` options for traversing custom nodes.
-     * @returns {NodeEventGenerator} new instance
-     */
     constructor(emitter) {
         this.emitter = emitter;
         this.enterSelectorsByNodeType = new Map();
@@ -89,10 +60,7 @@ class NodeEventGenerator {
     }
 
     /**
-     * Checks a selector against a node, and emits it if it matches
-     * @param {ASTNode} node The node to check
-     * @param {ASTSelector} selector An AST selector descriptor
-     * @returns {void}
+     * 根据节点检查选择器，如果匹配则发出
      */
     applySelector(node, selector) {
         // if (esquery.matches(node, selector.parsedSelector, this.currentAncestry, this.esqueryOptions)) {
@@ -101,38 +69,25 @@ class NodeEventGenerator {
     }
 
     /**
-     * Applies all appropriate selectors to a node, in specificity order
-     * @param {ASTNode} node The node to check
-     * @param {boolean} isExit `false` if the node is currently being entered, `true` if it's currently being exited
-     * @returns {void}
+     * 按特定顺序将所有适当的选择器应用于节点
      */
     applySelectors(node, isExit) {
         const selectorsByNodeType = (isExit ? this.exitSelectorsByNodeType : this.enterSelectorsByNodeType).get(node.type) || [];
-
-        /*
-         * selectorsByNodeType and anyTypeSelectors were already sorted by specificity in the constructor.
-         * Iterate through each of them, applying selectors in the right order.
-         */
         let selectorsByTypeIndex = 0;
-
         while (selectorsByTypeIndex < selectorsByNodeType.length ) {
                 this.applySelector(node, selectorsByNodeType[selectorsByTypeIndex++]);
         }
     }
 
     /**
-     * Emits an event of entering AST node.
-     * @param {ASTNode} node A node which was entered.
-     * @returns {void}
+     * 发出进入AST节点的事件
      */
     enterNode(node) {
         this.applySelectors(node, false);
     }
 
     /**
-     * Emits an event of leaving AST node.
-     * @param {ASTNode} node A node which was left.
-     * @returns {void}
+     * 发出离开AST节点的事件
      */
     leaveNode(node) {
         this.applySelectors(node, true);

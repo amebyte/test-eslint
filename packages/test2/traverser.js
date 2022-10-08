@@ -98,7 +98,7 @@
      }
  
      /**
-      * Traverse the given AST tree.
+      * 遍历给定的AST树.
       * @param {ASTNode} node The root node to traverse.
       * @param {Object} options The option object.
       * @param {Object} [options.visitorKeys=DEFAULT_VISITOR_KEYS] The keys of each node types to traverse child nodes. Default is `./default-visitor-keys.json`.
