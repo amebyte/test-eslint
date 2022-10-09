@@ -43,43 +43,6 @@ const sourceCode = new SourceCode({
     ast
 })
 
-const DEPRECATED_SOURCECODE_PASSTHROUGHS = {
-    getSource: "getText",
-    getSourceLines: "getLines",
-    getAllComments: "getAllComments",
-    getNodeByRangeIndex: "getNodeByRangeIndex",
-    getComments: "getComments",
-    getCommentsBefore: "getCommentsBefore",
-    getCommentsAfter: "getCommentsAfter",
-    getCommentsInside: "getCommentsInside",
-    getJSDocComment: "getJSDocComment",
-    getFirstToken: "getFirstToken",
-    getFirstTokens: "getFirstTokens",
-    getLastToken: "getLastToken",
-    getLastTokens: "getLastTokens",
-    getTokenAfter: "getTokenAfter",
-    getTokenBefore: "getTokenBefore",
-    getTokenByRangeStart: "getTokenByRangeStart",
-    getTokens: "getTokens",
-    getTokensAfter: "getTokensAfter",
-    getTokensBefore: "getTokensBefore",
-    getTokensBetween: "getTokensBetween"
-};
-
-// Object.freeze() 方法可以冻结一个对象。一个被冻结的对象再也不能被修改；冻结了一个对象则不能向这个对象添加新的属性，不能删除已有属性，不能修改该对象已有属性的可枚举性、可配置性、可写性，以及不能修改已有属性的值。此外，冻结一个对象后该对象的原型也不能被修改。freeze() 返回和传入的参数相同的对象。
-const BASE_TRAVERSAL_CONTEXT = Object.freeze(
-    Object.keys(DEPRECATED_SOURCECODE_PASSTHROUGHS).reduce(
-        (contextInfo, methodName) =>
-            Object.assign(contextInfo, {
-                [methodName](...args) {
-                    return this.getSourceCode()[DEPRECATED_SOURCECODE_PASSTHROUGHS[methodName]](...args);
-                }
-            }),
-        {}
-    )
-);
-
-
 let lintingProblems = []
 lintingProblems = runRules(
     sourceCode,
@@ -111,15 +74,6 @@ function runRules(sourceCode, configuredRules, ruleMapper) {
         visitorKeys: sourceCode.visitorKeys
     });
 
-    const sharedTraversalContext = Object.freeze(
-        Object.assign(
-            Object.create(BASE_TRAVERSAL_CONTEXT),
-            {
-                getSourceCode: () => sourceCode,
-            }
-        )
-    );
-
     const lintingProblems = [];
 
     Object.keys(configuredRules).forEach(ruleId => {
@@ -130,8 +84,9 @@ function runRules(sourceCode, configuredRules, ruleMapper) {
         let reportTranslator = null;
         const ruleContext = Object.freeze(
             Object.assign(
-                Object.create(sharedTraversalContext),
+                Object.create(null),
                 {
+                    getSourceCode: () => sourceCode,
                     id: ruleId,
                     options: getRuleOptions(configuredRules[ruleId]),
                     report(...args) {
