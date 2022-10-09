@@ -29,7 +29,7 @@ const configuredRules = {
 }
 
 // 编译成AST
-const ast = espree.parse(stripUnicodeBOM(text),{ 
+const ast = espree.parse(text,{ 
     comment: true,
     ecmaVersion: 6,
     ecmaFeatures: { jsx: true, globalReturn: true }, 
@@ -82,28 +82,22 @@ function runRules(sourceCode, configuredRules, ruleMapper) {
 
         const messageIds = rule.meta && rule.meta.messages;
         let reportTranslator = null;
-        const ruleContext = Object.freeze(
-            Object.assign(
-                Object.create(null),
-                {
-                    getSourceCode: () => sourceCode,
-                    id: ruleId,
-                    options: getRuleOptions(configuredRules[ruleId]),
-                    report(...args) {
+        const ruleContext = {
+            getSourceCode: () => sourceCode,
+            id: ruleId,
+            report(...args) {
 
-                        if (reportTranslator === null) {
-                            reportTranslator = createReportTranslator({
-                                ruleId,
-                                sourceCode,
-                                messageIds,
-                            });
-                        }
-                        const problem = reportTranslator(...args);
-                        lintingProblems.push(problem);
-                    }
+                if (reportTranslator === null) {
+                    reportTranslator = createReportTranslator({
+                        ruleId,
+                        sourceCode,
+                        messageIds,
+                    });
                 }
-            )
-        );
+                const problem = reportTranslator(...args);
+                lintingProblems.push(problem);
+            }
+        }
 
         const ruleListeners = rule.create(ruleContext);
 
@@ -134,20 +128,6 @@ function runRules(sourceCode, configuredRules, ruleMapper) {
     });
 
     return lintingProblems;
-}
-
-function stripUnicodeBOM(text) {
-    if (text.charCodeAt(0) === 0xFEFF) {
-        return text.slice(1);
-    }
-    return text;
-}
-
-function getRuleOptions(ruleConfig) {
-    if (Array.isArray(ruleConfig)) {
-        return ruleConfig.slice(1);
-    }
-    return [];
 }
 
 function getRule(slots, ruleId) {
