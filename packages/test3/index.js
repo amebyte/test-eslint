@@ -60,7 +60,6 @@ function runRules(sourceCode) {
     });
 
     const lintingProblems = [];
-    const messageIds = rule.meta && rule.meta.messages;
     let reportTranslator = null;
     const ruleContext = {
         getSourceCode: () => sourceCode,
@@ -69,7 +68,6 @@ function runRules(sourceCode) {
             if (reportTranslator === null) {
                 reportTranslator = createReportTranslator({
                     sourceCode,
-                    messageIds,
                 });
             }
             const problem = reportTranslator(...args);
