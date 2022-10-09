@@ -32,14 +32,10 @@ const configuredRules = {
 const ast = espree.parse(stripUnicodeBOM(text),{ 
     comment: true,
     ecmaVersion: 6,
-    eslintScopeManager: true,
-    eslintVisitorKeys: true,  
-    filePath: filePath,
     ecmaFeatures: { jsx: true, globalReturn: true }, 
     loc: true,
     range: true,
     raw: true,
-    sourceType: undefined,
     tokens: true
 })
 
