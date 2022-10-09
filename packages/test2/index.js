@@ -40,10 +40,7 @@ const ast = espree.parse(stripUnicodeBOM(text),{
 
 const sourceCode = new SourceCode({
     text,
-    ast,
-    parserServices: {},
-    scopeManager:null,
-    visitorKeys: evk.KEYS
+    ast
 })
 
 const DEPRECATED_SOURCECODE_PASSTHROUGHS = {
