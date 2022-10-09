@@ -35,7 +35,6 @@ const ast = espree.parse(stripUnicodeBOM(text),{
     ecmaFeatures: { jsx: true, globalReturn: true }, 
     loc: true,
     range: true,
-    raw: true,
     tokens: true
 })
 
