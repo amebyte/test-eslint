@@ -90,7 +90,6 @@ function runRules(sourceCode) {
 
     nodeQueue.forEach(traversalInfo => {
         currentNode = traversalInfo.node;
-
         try {
             if (traversalInfo.isEntering) {
                 eventGenerator.enterNode(currentNode);
