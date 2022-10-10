@@ -2,7 +2,7 @@
    create(context) {
      const sourceCode = context.getSourceCode()
      return {
-        'VariableDeclaration'(node) {
+        VariableDeclaration(node) {
             if(node.kind === 'var') {
               context.report({
                  node,
