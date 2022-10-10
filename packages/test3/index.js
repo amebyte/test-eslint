@@ -61,6 +61,7 @@ function runRules(sourceCode) {
 
     const lintingProblems = [];
     let reportTranslator = null;
+    // 构建规则插件的上下文对象
     const ruleContext = {
         getSourceCode: () => sourceCode,
         report(...args) {
