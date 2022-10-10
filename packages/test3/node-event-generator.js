@@ -63,9 +63,7 @@ class NodeEventGenerator {
      * 根据节点检查选择器，如果匹配则发出
      */
     applySelector(node, selector) {
-        // if (esquery.matches(node, selector.parsedSelector, this.currentAncestry, this.esqueryOptions)) {
-            this.emitter.emit(selector.rawSelector, node);
-        // }
+        this.emitter.emit(selector.rawSelector, node);
     }
 
     /**
