@@ -8,7 +8,7 @@
                  node,
                  message:'不能用var',
                  fix(fixer) {
-                     const varToken = sourceCode.getFirstToken(node, {filter: t => t.value === 'var'})
+                     const varToken = sourceCode.getFirstToken(node)
                      return fixer.replaceText(varToken, 'let')
                  }
               })
