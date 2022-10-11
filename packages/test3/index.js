@@ -33,7 +33,7 @@ const sourceCode = new SourceCode({
 })
 
 let lintingProblems = []
-lintingProblems = runRules( sourceCode);
+lintingProblems = runRules(sourceCode);
 
 console.log(lintingProblems)
 const messages = lintingProblems
