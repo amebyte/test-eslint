@@ -33,7 +33,7 @@ const INDEX_MAP = Symbol("indexMap");
  * @returns {Object} The map from locations to indices in `tokens`.
  * @private
  */
-function createIndexMap(tokens, comments) {
+function createIndexMap(tokens) {
     const map = Object.create(null);
     let tokenIndex = 0;
     let nextStart = 0;
